@@ -1,0 +1,23 @@
+src/deck.html
+  s_d6f5d080493362::t_90b72127fcbcf6 466,468-473,475-477,479,481
+dist/analytics-in-food-delivery.html
+  s_d6f5d080493362::t_be939a7dd6149d 472,474-479,481-483,485,487
+index.html
+  s_d6f5d080493362::t_2abf5c52ba5be4 472,474-479,481-483,485,487
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.15",
+  "base_commit_sha": "a734747101ebbe9bb4fafdb70b31fde0b0ca0562",
+  "prompts": {},
+  "sessions": {
+    "s_d6f5d080493362": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a05d9d-f89e-73b0-a4b3-76f4398565d5",
+        "model": "gpt-5.6-sol"
+      },
+      "human_author": "Bharath Krishnamachari <222831533+bharath-cero@users.noreply.github.com>"
+    }
+  }
+}
