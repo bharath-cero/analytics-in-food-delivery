@@ -27,3 +27,6 @@ python3 build.py
 
 The generated `index.html` is self-contained apart from web fonts and remains
 usable with system fonts if the network is unavailable.
+
+The National Taiwan University logo is sourced from the university's official
+website.

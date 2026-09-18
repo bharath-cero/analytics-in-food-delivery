@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 """Build the standalone HTML presentation used by GitHub Pages."""
 
+import base64
 from pathlib import Path
 
 
@@ -11,6 +12,12 @@ DIST = ROOT / "dist"
 
 def build() -> None:
     source = SOURCE.read_text(encoding="utf-8")
+    logo = ROOT / "assets" / "ntu-logo.svg"
+    encoded_logo = base64.b64encode(logo.read_bytes()).decode("ascii")
+    source = source.replace(
+        "../assets/ntu-logo.svg",
+        "data:image/svg+xml;base64," + encoded_logo,
+    )
     head, rest = source.split('<div id="viewport">', 1)
     standalone = (
         '<!doctype html>\n<html lang="en">\n<head>\n'
