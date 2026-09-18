@@ -1,0 +1,626 @@
+<meta charset="utf-8">
+<title>Analytics in Food Delivery</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,700;9..144,800&family=Inter+Tight:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap">
+
+<style>
+  :root {
+    color-scheme: light;
+    --paper:    #F7F3EB;
+    --card:     #FDFAF4;
+    --secondary:#EBE7DF;
+    --ink:      #1F1915;
+    --muted:    #5C534D;
+    --line:     #D6D0C9;
+    --pine:     #005C41;
+    --pine-mid: #008760;
+    --mint:     #D3E2DB;
+    --ochre:    #C68956;
+    --brick:    #AC312C;
+  }
+
+  * { box-sizing: border-box; }
+
+  body {
+    margin: 0;
+    background: var(--paper);
+    color: var(--ink);
+    font-family: "Inter Tight", "Helvetica Neue", Arial, sans-serif;
+    overflow: hidden;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  #viewport { position: fixed; inset: 0; background: var(--paper); display: grid; place-items: center; }
+
+  #stage {
+    position: relative;
+    width: 1280px; height: 720px;
+    transform-origin: center center;
+    background: var(--paper);
+    overflow: hidden;
+  }
+
+  .eyebrow, .index {
+    position: absolute;
+    font-family: "JetBrains Mono", ui-monospace, monospace;
+    font-size: 11.5px; letter-spacing: .18em; text-transform: uppercase;
+    color: var(--muted);
+  }
+  .eyebrow { top: 46px; left: 74px; }
+  .eyebrow b { color: var(--pine); font-weight: 500; }
+  .index { bottom: 44px; right: 74px; font-variant-numeric: tabular-nums; }
+  .index i { font-style: normal; color: var(--line); }
+
+  #hair { position: absolute; left: 74px; right: 74px; top: 78px; height: 1px; background: var(--line); }
+
+  .slide { position: absolute; inset: 118px 74px 86px 74px; display: flex; flex-direction: column; justify-content: center; }
+  .slide.top { justify-content: flex-start; }
+
+  /* progressive reveal */
+  [data-step] { opacity: 0; transform: translateY(9px); transition: opacity .42s ease, transform .42s cubic-bezier(.2,.75,.25,1); }
+  [data-step].shown { opacity: 1; transform: none; }
+  @media (prefers-reduced-motion: reduce) {
+    [data-step] { transition: none; }
+  }
+
+  h1, h2, .stmt, .disp {
+    font-family: "Fraunces", Georgia, "Times New Roman", serif;
+    margin: 0; text-wrap: balance; font-weight: 700;
+    letter-spacing: -.015em;
+  }
+  h1 { font-size: 68px; line-height: 1.04; }
+  h2 { font-size: 46px; line-height: 1.1; }
+  .stmt { font-size: 38px; line-height: 1.16; }
+  .huge { font-family: "Fraunces", Georgia, serif; font-weight: 800; font-size: 106px; line-height: .88; letter-spacing: -.03em; color: var(--pine); }
+
+  p { font-size: 21px; line-height: 1.55; margin: 0; color: var(--muted); max-width: 34em; }
+  p.lead { font-size: 24px; color: var(--ink); }
+  .pine { color: var(--pine); }
+  .brick { color: var(--brick); }
+
+  .lbl {
+    font-family: "JetBrains Mono", ui-monospace, monospace;
+    font-size: 11.5px; letter-spacing: .2em; text-transform: uppercase; color: var(--pine);
+  }
+  .stack { display: flex; flex-direction: column; gap: 26px; }
+  .stack.sm { gap: 16px; }
+  .row { display: flex; gap: 54px; }
+  .row.mid { align-items: center; }
+
+  hr.rule { height: 1px; background: var(--line); border: 0; margin: 0; }
+
+  /* qr */
+  .qrbox { width: 168px; }
+  .qrbox svg { width: 168px; height: 168px; display: block; border: 1px solid var(--line); border-radius: 6px; }
+  .qrbox .cap { font-family: "JetBrains Mono", ui-monospace, monospace; font-size: 10.5px; letter-spacing: .1em; color: var(--muted); margin-top: 9px; line-height: 1.6; text-transform: uppercase; }
+  .qrbox.mini { width: 72px; }
+  .qrbox.mini svg { width: 72px; height: 72px; border-radius: 4px; }
+  .qrbox.mini .cap { font-size: 8.5px; line-height: 1.35; margin-top: 5px; }
+  .qrph {
+    width: 210px; height: 210px; border: 2px dashed var(--pine); border-radius: 6px;
+    display: grid; place-items: center; text-align: center; background: var(--card);
+    font-family: "JetBrains Mono", ui-monospace, monospace; font-size: 11px;
+    letter-spacing: .14em; text-transform: uppercase; color: var(--pine); line-height: 2;
+  }
+
+  /* hustle anecdotes */
+  .anec { display: grid; grid-template-columns: 28px 1fr 156px; gap: 18px; align-items: start; padding: 11px 0; border-top: 1px solid var(--line); }
+  .anec .n { font-family: "JetBrains Mono", ui-monospace, monospace; font-size: 13px; color: var(--pine); padding-top: 6px; }
+  .anec .t { font-family: "Fraunces", Georgia, serif; font-weight: 700; font-size: 23px; line-height: 1.2; color: var(--ink); }
+  .anec .d { font-size: 16.5px; line-height: 1.42; color: var(--muted); margin-top: 5px; }
+  .anec .c { font-family: "JetBrains Mono", ui-monospace, monospace; font-size: 12px; letter-spacing: .06em; color: var(--pine-mid); text-align: right; padding-top: 8px; line-height: 1.7; }
+
+  /* learning questions */
+  .qq { display: flex; gap: 16px; align-items: baseline; }
+  .qq .m { font-family: "JetBrains Mono", ui-monospace, monospace; font-size: 12px; color: var(--pine); flex: none; padding-top: 7px; }
+  .qq .x { font-family: "Fraunces", Georgia, serif; font-weight: 600; font-size: 23px; line-height: 1.22; color: var(--ink); }
+
+  .note { background: var(--card); border-left: 3px solid var(--ochre); padding: 13px 18px; }
+  .note .h { font-family: "JetBrains Mono", ui-monospace, monospace; font-size: 10.5px; letter-spacing: .18em; text-transform: uppercase; color: var(--ochre); margin-bottom: 7px; }
+  .note .b { font-size: 17.5px; line-height: 1.42; color: var(--ink); }
+
+  .panel { background: var(--card); border: 1px solid var(--line); border-radius: 6px; padding: 20px 22px 16px; }
+  .panel .ph { font-family: "JetBrains Mono", ui-monospace, monospace; font-size: 11px; letter-spacing: .18em; text-transform: uppercase; color: var(--muted); margin-bottom: 12px; }
+
+  .fig { width: 100%; display: block; }
+  svg text { font-family: "JetBrains Mono", ui-monospace, monospace; }
+  .serifsvg { font-family: "Fraunces", Georgia, serif !important; }
+  .flagsvg { font-family: "Apple Color Emoji", "Segoe UI Emoji", sans-serif !important; }
+
+  /* overlays */
+  #notes {
+    position: fixed; left: 0; right: 0; bottom: 0; max-height: 44vh; overflow-y: auto;
+    background: var(--card); border-top: 2px solid var(--pine);
+    padding: 16px 30px 20px; display: none; z-index: 40;
+    box-shadow: 0 -14px 34px rgba(31,25,21,.10);
+  }
+  #notes.on { display: block; }
+  #notes .nh { font-family: "JetBrains Mono", ui-monospace, monospace; font-size: 10.5px; letter-spacing: .18em; text-transform: uppercase; color: var(--pine); margin-bottom: 8px; }
+  #notes .nb { font-size: 15px; line-height: 1.62; color: var(--ink); max-width: 108ch; }
+  #notes .nb em { color: var(--pine); font-style: normal; font-weight: 600; }
+  #notes .nb b { color: var(--brick); font-weight: 600; }
+
+  #grid { position: fixed; inset: 0; background: var(--paper); padding: 30px; overflow-y: auto; display: none; z-index: 50; }
+  #grid.on { display: block; }
+  #grid .gh { font-family: "JetBrains Mono", ui-monospace, monospace; font-size: 11.5px; letter-spacing: .16em; text-transform: uppercase; color: var(--muted); margin-bottom: 16px; }
+  #gridwrap { display: grid; grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)); gap: 12px; }
+  .thumb {
+    background: var(--card); border: 1px solid var(--line); border-left: 3px solid var(--line);
+    border-radius: 5px; padding: 14px 16px; cursor: pointer; text-align: left; color: var(--ink);
+    font-family: inherit; display: flex; flex-direction: column; gap: 7px; min-height: 88px;
+  }
+  .thumb:hover, .thumb:focus-visible { border-color: var(--pine); outline: none; }
+  .thumb.cur { border-left-color: var(--pine); background: var(--mint); }
+  .thumb .tn { font-family: "JetBrains Mono", ui-monospace, monospace; font-size: 10px; letter-spacing: .14em; color: var(--muted); text-transform: uppercase; }
+  .thumb .tt { font-family: "Fraunces", Georgia, serif; font-size: 17px; font-weight: 700; line-height: 1.2; }
+  .thumb .tm { font-family: "JetBrains Mono", ui-monospace, monospace; font-size: 10px; color: var(--pine); letter-spacing: .08em; }
+
+  #hud {
+    position: fixed; top: 12px; right: 16px; z-index: 45;
+    display: flex; gap: 10px; align-items: center;
+    font-family: "JetBrains Mono", ui-monospace, monospace; font-size: 11.5px; color: var(--muted);
+  }
+  #clock { font-variant-numeric: tabular-nums; letter-spacing: .06em; }
+  #clock.run { color: var(--pine); font-weight: 500; }
+  #hud button {
+    font: inherit; letter-spacing: .1em; text-transform: uppercase;
+    background: var(--card); color: var(--muted); border: 1px solid var(--line);
+    border-radius: 4px; padding: 5px 9px; cursor: pointer;
+  }
+  #hud button:hover, #hud button:focus-visible { color: var(--pine); border-color: var(--pine); outline: none; }
+
+  #help {
+    position: fixed; bottom: 10px; left: 16px; z-index: 45;
+    font-family: "JetBrains Mono", ui-monospace, monospace; font-size: 10.5px;
+    letter-spacing: .08em; color: var(--muted); opacity: .55;
+  }
+  #dots { position: absolute; bottom: 44px; left: 74px; display: flex; gap: 6px; align-items: center; }
+  #dots i { width: 7px; height: 7px; border-radius: 50%; border: 1px solid var(--line); display: block; }
+  #dots i.on { background: var(--pine); border-color: var(--pine); }
+
+  /* intro slide */
+  .bigname {
+    font-family: "Fraunces", Georgia, serif; font-weight: 800;
+    font-size: 108px; line-height: .95; letter-spacing: -.038em; color: var(--ink);
+  }
+  .role { font-family: "Fraunces", Georgia, serif; font-weight: 600; font-size: 29px; color: var(--pine); line-height: 1.15; }
+  .badge {
+    display: inline-flex; align-items: center; gap: 9px; align-self: flex-start;
+    border: 1px solid var(--line); background: var(--card); border-radius: 999px; padding: 7px 15px;
+    font-family: "JetBrains Mono", ui-monospace, monospace; font-size: 11px;
+    letter-spacing: .16em; text-transform: uppercase; color: var(--muted);
+  }
+  .wm { font-family: "Inter Tight", "Helvetica Neue", sans-serif; font-weight: 700; letter-spacing: -.012em; }
+  .brands { font-family: "Inter Tight", sans-serif; font-size: 14px; color: var(--muted); letter-spacing: .04em; }
+  .brand-logo { display: block; width: auto; max-width: 100%; height: auto; }
+  .brand-logo.dh-main { width: 210px; }
+  .vr { width: 1px; background: var(--line); align-self: stretch; }
+  #notes .src { color: var(--muted); font-size: 12px; }
+</style>
+
+<div id="viewport">
+  <div id="stage">
+    <div id="hair"></div>
+    <div class="eyebrow" id="eyebrow"></div>
+    <div class="index" id="idx"></div>
+    <div id="dots"></div>
+    <div class="slide" id="slide"></div>
+  </div>
+</div>
+
+<div id="hud">
+  <span id="clock">00:00</span>
+  <button id="btimer" type="button" title="Start / pause (T)">Timer</button>
+  <button id="bnotes" type="button" title="Notes (N)">Notes</button>
+  <button id="bgrid" type="button" title="All slides (O)">Slides</button>
+</div>
+
+<div id="help">→ next beat · ← back · O all slides · N notes · T timer · F fullscreen</div>
+
+<div id="notes"><div class="nh" id="nh"></div><div class="nb" id="nb"></div></div>
+
+<div id="grid">
+  <div class="gh" id="gh">Deck map — click to jump · Esc to close</div>
+  <div id="gridwrap"></div>
+</div>
+
+<script>
+(function () {
+  "use strict";
+
+  var S = [];
+
+  /* ───────────────────────── 1 · INTRO ───────────────────────── */
+  S.push({
+    act: "Student learning session", wp: "Taiwan",
+    title: "Analytics in food delivery", min: 0.5,
+    html:
+      '<div class="stack" style="gap:24px">' +
+        '<div class="lbl">A fifteen-minute view from inside the work</div>' +
+        '<h1 style="font-size:79px;line-height:.98;max-width:12em">Analytics in<br><span class="pine">food delivery</span></h1>' +
+        '<div class="stmt" style="font-size:29px;line-height:1.35;max-width:26em">Why data matters, how the work is organised and where I see the role heading.</div>' +
+        '<hr class="rule" style="margin-top:16px">' +
+        '<div class="row mid" style="justify-content:space-between">' +
+          '<div><div class="stmt" style="font-size:27px">Bharath Krishnamachari</div><p style="font-size:17px;margin-top:4px">Senior Director, Data &amp; AI</p></div>' +
+          '<div class="lbl" style="color:var(--ochre);text-align:right;line-height:1.7">September 2026<br>Remote guest session</div>' +
+        '</div>' +
+      '</div>',
+    notes: "Keep the introduction brief. Frame the session around a difficult operating business, the data organisation built to support it, and the implications for students entering analytics."
+  });
+
+  /* ───────────────────────── 11 · MARKETPLACE ───────────────────────── */
+  S.push({
+    act: "Analytics in food delivery", wp: "Business context", title: "A three-sided marketplace", min: 2,
+    html:
+      '<div class="stack" style="gap:16px">' +
+        '<div class="lbl">Business context</div>' +
+        '<h2 style="font-size:43px">A hot meal. Three parties. Thousands of ways to fail.</h2>' +
+        '<div class="row mid" style="gap:46px">' +
+          '<div style="flex:1.15">' +
+            '<svg class="fig" viewBox="0 0 600 320" aria-label="A three-sided food delivery marketplace connecting restaurants, riders and customers">' +
+              '<path d="M300 48 L105 258 L495 258 Z" fill="none" stroke="var(--line)" stroke-width="3"/>' +
+              '<g>' +
+                '<circle cx="300" cy="48" r="43" fill="var(--card)" stroke="var(--ochre)" stroke-width="4"/>' +
+                '<text class="serifsvg" x="300" y="44" font-size="18" font-weight="700" fill="var(--ink)" text-anchor="middle">Riders</text>' +
+                '<text x="300" y="65" font-size="10.5" fill="var(--muted)" text-anchor="middle">MOVE</text>' +
+              '</g>' +
+              '<g>' +
+                '<circle cx="105" cy="258" r="43" fill="var(--card)" stroke="var(--brick)" stroke-width="4"/>' +
+                '<text class="serifsvg" x="105" y="254" font-size="17" font-weight="700" fill="var(--ink)" text-anchor="middle">Restaurants</text>' +
+                '<text x="105" y="275" font-size="10.5" fill="var(--muted)" text-anchor="middle">PREPARE</text>' +
+              '</g>' +
+              '<g>' +
+                '<circle cx="495" cy="258" r="43" fill="var(--card)" stroke="var(--pine-mid)" stroke-width="4"/>' +
+                '<text class="serifsvg" x="495" y="254" font-size="18" font-weight="700" fill="var(--ink)" text-anchor="middle">Customers</text>' +
+                '<text x="495" y="275" font-size="10.5" fill="var(--muted)" text-anchor="middle">EXPECT</text>' +
+              '</g>' +
+              '<g>' +
+                '<circle cx="300" cy="191" r="60" fill="var(--pine)"/>' +
+                '<text class="serifsvg" x="300" y="181" font-size="18" font-weight="700" fill="var(--paper)" text-anchor="middle">Marketplace</text>' +
+                '<text x="300" y="203" font-size="10.5" fill="var(--mint)" text-anchor="middle">ABSORBS THE</text>' +
+                '<text x="300" y="216" font-size="10.5" fill="var(--mint)" text-anchor="middle">VARIANCE</text>' +
+                '<path d="M34 191 H224" stroke="var(--ochre)" stroke-width="3"/>' +
+                '<path d="M376 191 H566" stroke="var(--brick)" stroke-width="3"/>' +
+                '<text x="36" y="177" font-size="11" fill="var(--ochre)">GROWTH</text>' +
+                '<text x="564" y="177" font-size="11" fill="var(--brick)" text-anchor="end">PROFITABILITY</text>' +
+              '</g>' +
+            '</svg>' +
+          '</div>' +
+          '<div style="flex:.85" class="stack sm">' +
+            '<div style="border-left:3px solid var(--ochre);padding-left:18px">' +
+              '<div class="stmt" style="font-size:25px">Thin margins.</div>' +
+              '<p style="font-size:17px;margin-top:5px">The platform carries the cost when the physical system breaks.</p>' +
+            '</div>' +
+            '<div style="border-left:3px solid var(--brick);padding-left:18px">' +
+              '<div class="stmt" style="font-size:25px">Human failure points.</div>' +
+              '<p style="font-size:17px;margin-top:5px">Busy kitchens, delayed riders, weather, packing mistakes and spills.</p>' +
+            '</div>' +
+            '<div style="border-left:3px solid var(--pine);padding-left:18px">' +
+              '<div class="stmt" style="font-size:25px">Constant trade-offs.</div>' +
+              '<p style="font-size:17px;margin-top:5px">Growth, experience and profitability must improve together.</p>' +
+            '</div>' +
+          '</div>' +
+        '</div>' +
+        '<div style="border-top:1px solid var(--line);padding-top:14px;font-family:\'Fraunces\',Georgia,serif;font-size:23px;font-weight:700">Data and experimentation are how the system learns. <span class="pine">AI increases the speed &mdash; and the stakes.</span></div>' +
+      '</div>',
+    notes: "Use the existing talk track here: food delivery is the difficult task of reliably moving a hot meal from restaurant, through rider, to customer at massive scale. Every edge of the triangle contains human uncertainty, and the marketplace absorbs the cost on top of thin margins. Explain why data matters: the trade-offs are continuous, connected and too large for intuition alone. Introduce AI as an accelerant, not a separate enterprise thesis.<br><br><span class=\"src\">[Sources] Marketplace framing: speaker-provided reference slide. Failure examples and movement-of-atoms framing: Bharath Krishnamachari LinkedIn post, &ldquo;Movement of atoms.&rdquo;</span>"
+  });
+
+  /* ───────────────────────── 12 · DATA ORG ───────────────────────── */
+  S.push({
+    act: "Analytics in food delivery", wp: "How the data org is designed", title: "Analytics Engineering", min: 2.5,
+    html:
+      '<div class="stack" style="gap:14px">' +
+        '<div class="lbl">How the data org is designed</div>' +
+        '<h2 style="font-size:40px">Analytics Engineering has the highest leverage in our org design.</h2>' +
+        '<div class="row" style="gap:34px;align-items:stretch">' +
+          '<div style="flex:1.22" class="stack sm">' +
+            '<div style="display:grid;grid-template-columns:repeat(5,1fr);gap:8px">' +
+              '<div class="panel" style="padding:13px 8px;text-align:center"><div class="ph">Product</div><div style="font-size:16px;font-weight:600">Analytics</div></div>' +
+              '<div class="panel" style="padding:13px 8px;text-align:center"><div class="ph">Marketing</div><div style="font-size:16px;font-weight:600">Analytics</div></div>' +
+              '<div class="panel" style="padding:13px 8px;text-align:center"><div class="ph">Commercial</div><div style="font-size:16px;font-weight:600">Analytics</div></div>' +
+              '<div class="panel" style="padding:13px 8px;text-align:center"><div class="ph">Operations</div><div style="font-size:16px;font-weight:600">Analytics</div></div>' +
+              '<div class="panel" style="padding:13px 8px;text-align:center"><div class="ph">Groceries</div><div style="font-size:16px;font-weight:600">Analytics</div></div>' +
+            '</div>' +
+            '<div style="background:var(--mint);border:2px solid var(--pine);padding:18px 24px">' +
+              '<div><div class="stmt" style="font-size:24px">Analytics Engineers</div><p style="font-size:16px;margin-top:4px">Data marts · governed metrics · semantic layers · observability</p></div>' +
+            '</div>' +
+            '<div class="panel" style="padding:18px 24px">' +
+              '<div class="row mid" style="gap:20px"><div class="lbl">Foundation</div><div><div class="stmt" style="font-size:24px">Data Engineers</div><p style="font-size:16px;margin-top:2px">Ingestion · quality · infrastructure · cloud cost</p></div></div>' +
+            '</div>' +
+          '</div>' +
+          '<div style="flex:.78;border-left:1px solid var(--line);padding-left:28px">' +
+            '<div class="lbl">The mission</div>' +
+            '<div class="stmt" style="font-size:27px;margin-top:12px">Turn raw data into trusted meaning the business can reuse.</div>' +
+            '<hr class="rule" style="margin:20px 0">' +
+            '<div class="stack sm" style="gap:13px">' +
+              '<div><div class="lbl">01 · Model</div><p style="font-size:16px;margin-top:3px">Business-aligned data models.</p></div>' +
+              '<div><div class="lbl">02 · Define</div><p style="font-size:16px;margin-top:3px">Consistent, reusable metrics.</p></div>' +
+              '<div><div class="lbl">03 · Trust</div><p style="font-size:16px;margin-top:3px">Contracts, quality and observability.</p></div>' +
+            '</div>' +
+          '</div>' +
+        '</div>' +
+      '</div>',
+    notes: "Spend time here. Begin with embedded functional analytics and the data-engineering foundation, then reveal Analytics Engineering as the connective tissue. Explain why it has a dedicated career framework and why the leverage is high: the same governed models and metrics support every analyst, dashboard and agent. Distinguish the craft from both data engineering and conventional analysis. Use your own examples of what an Analytics Engineer owns day to day.<br><br><span class=\"src\">[Sources] Organisation design and Analytics Engineering remit: speaker-provided reference slide and Bharath Krishnamachari CDAO Data Leadership Summit post.</span>"
+  });
+
+  /* ───────────────────────── 13 · SEMANTIC LAYER ───────────────────────── */
+  S.push({
+    act: "Analytics in food delivery", wp: "Grounding the stack", title: "The semantic layer", min: 2.5,
+    html:
+      '<div class="stack" style="gap:13px">' +
+        '<div class="lbl">Grounding the stack</div>' +
+        '<div style="display:flex;justify-content:space-between;align-items:baseline">' +
+          '<h2 style="font-size:42px">The semantic layer is the shared language.</h2>' +
+          '<div class="lbl" style="color:var(--ochre)">one reality · many interfaces</div>' +
+        '</div>' +
+        '<div style="width:86%;margin:0 auto" class="stack sm">' +
+          '<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:18px">' +
+            '<div class="panel" style="text-align:center;padding:15px"><div class="stmt" style="font-size:23px">Dashboards</div><div class="lbl" style="margin-top:6px">see</div></div>' +
+            '<div class="panel" style="text-align:center;padding:15px"><div class="stmt" style="font-size:23px">Analysts</div><div class="lbl" style="margin-top:6px">interpret</div></div>' +
+            '<div class="panel" style="text-align:center;padding:15px"><div class="stmt" style="font-size:23px">Agents</div><div class="lbl" style="margin-top:6px">act</div></div>' +
+          '</div>' +
+          '<div style="background:var(--pine);color:var(--paper);padding:18px 28px;text-align:center;border-radius:6px">' +
+            '<div class="lbl" style="color:var(--mint)">Grounding layer</div>' +
+            '<div class="stmt" style="font-size:28px;margin-top:5px;color:var(--paper)">Semantic layer + context graph</div>' +
+          '</div>' +
+          '<div style="background:var(--secondary);border:1px solid var(--line);padding:15px 28px;text-align:center;border-radius:6px">' +
+            '<div class="stmt" style="font-size:24px">Cross-functional data mart</div>' +
+          '</div>' +
+          '<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:18px">' +
+            '<div style="border-top:3px solid var(--ochre);padding-top:9px;text-align:center"><div class="lbl">Orders</div><p style="font-size:15px;margin:3px auto 0">events</p></div>' +
+            '<div style="border-top:3px solid var(--brick);padding-top:9px;text-align:center"><div class="lbl">Customers</div><p style="font-size:15px;margin:3px auto 0">behaviour</p></div>' +
+            '<div style="border-top:3px solid var(--pine-mid);padding-top:9px;text-align:center"><div class="lbl">Logistics</div><p style="font-size:15px;margin:3px auto 0">operations</p></div>' +
+          '</div>' +
+        '</div>' +
+        '<div style="font-family:\'Fraunces\',Georgia,serif;font-size:22px;font-weight:700;text-align:center">Not text-to-SQL. <span class="pine">Shared meaning for humans and AI.</span></div>' +
+      '</div>',
+    notes: "Build this from the bottom. Raw sources become a cross-functional data mart; Analytics Engineers add governed definitions and business context; dashboards, analysts and agents all consume the same meaning. Explain why this matters for agentic analytics: fluent SQL against ambiguous definitions only produces confident inconsistency. The semantic and context layers make the ecosystem agent-friendly. Use one deceptively complicated metric definition if you have a safe example.<br><br><span class=\"src\">[Sources] Stack design: speaker-provided reference slide and Bharath Krishnamachari CDAO Data Leadership Summit post.</span>"
+  });
+
+  /* ───────────────────────── 14 · ANALYSIS VS RIGOUR ───────────────────────── */
+  S.push({
+    act: "Analytics in food delivery", wp: "The new bottleneck", title: "Analysis scales faster than rigour", min: 2,
+    html:
+      '<div class="stack" style="gap:28px">' +
+        '<div class="lbl">The new bottleneck</div>' +
+        '<div>' +
+          '<h2 style="font-size:48px;line-height:1.08;max-width:22em">Easy access to analysis doesn&rsquo;t guarantee better decisions.</h2>' +
+          '<div class="stmt brick" style="font-size:41px;line-height:1.12;margin-top:18px">More charts. More interpretations.<br>More confidently wrong narratives.</div>' +
+        '</div>' +
+        '<div class="row" style="gap:52px;border-top:1px solid var(--line);padding-top:24px">' +
+          '<div style="flex:1">' +
+            '<div class="lbl" style="color:var(--ochre)">What becomes cheap</div>' +
+            '<div class="stmt" style="font-size:27px;margin-top:10px">Code, queries and first-pass analysis.</div>' +
+            '<p style="font-size:16px;margin-top:8px">Python, SQL and copilots become available to almost everyone.</p>' +
+          '</div>' +
+          '<div style="flex:1">' +
+            '<div class="lbl" style="color:var(--pine)">What becomes valuable</div>' +
+            '<div class="stmt" style="font-size:27px;margin-top:10px">Rigour, context and judgment.</div>' +
+            '<p style="font-size:16px;margin-top:8px">The work moves from producing an answer to making the right decision.</p>' +
+          '</div>' +
+        '</div>' +
+      '</div>',
+    notes: "The falling barrier to analysis is good: low-leverage service work no longer needs to queue behind analysts, and more people will write Python or SQL with assistance. But analysis scales faster than rigour. More output can create more confidently wrong narratives unless the company shares definitions and context. This is the setup for where analysts need to move next.<br><br><span class=\"src\">[Sources] Timothy Wong quote and commentary: Bharath Krishnamachari LinkedIn post, &ldquo;Future of analytics with AI.&rdquo;</span>"
+  });
+
+  /* ───────────────────────── 15 · THREE DATA CRAFTS ───────────────────────── */
+  S.push({
+    act: "Analytics in food delivery", wp: "Where the craft is heading", title: "Three emerging data careers", min: 2.5,
+    html:
+      '<div class="stack" style="gap:20px">' +
+        '<div class="lbl">Where the craft is heading</div>' +
+        '<h2 style="font-size:42px">Three ways I see the data role evolving.</h2>' +
+        '<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:26px">' +
+          '<div data-step="1" style="border-top:4px solid var(--pine);padding-top:18px">' +
+            '<div class="lbl">01 · Core function now</div>' +
+            '<div class="stmt" style="font-size:28px;margin-top:14px">Analytics<br>Engineering</div>' +
+            '<p style="font-size:17px;line-height:1.45;margin-top:14px">Semantic layers.<br>Governed metrics.<br>Context graphs.<br>Evals and golden datasets.</p>' +
+          '</div>' +
+          '<div data-step="2" style="border-top:4px solid var(--ochre);padding-top:18px">' +
+            '<div class="lbl">02 · Higher bar</div>' +
+            '<div class="stmt" style="font-size:28px;margin-top:14px">Data Product<br>Management</div>' +
+            '<p style="font-size:17px;line-height:1.45;margin-top:14px">Canonical views.<br>Built for real users.<br>Fast and intuitive.<br>Measure whether it lands.</p>' +
+          '</div>' +
+          '<div data-step="3" style="border-top:4px solid var(--brick);padding-top:18px">' +
+            '<div class="lbl">03 · The differentiator</div>' +
+            '<div class="stmt" style="font-size:28px;margin-top:14px">Storytelling<br>+ Influence</div>' +
+            '<p style="font-size:17px;line-height:1.45;margin-top:14px">Problem framing.<br>Sound judgment.<br>Consultative engagement.<br>Communication that moves.</p>' +
+          '</div>' +
+        '</div>' +
+        '<div data-step="4" style="border-top:1px solid var(--line);padding-top:18px" class="stmt">Only one of these is primarily about tools.</div>' +
+      '</div>',
+    notes: "Close Act II by making the career implications explicit for the data master&rsquo;s students. Analytics Engineering owns the infrastructure of trusted meaning. Data Product Management treats canonical views and analytical products as products, including adoption. Storytelling and influence were always part of good analysis; now they become the differentiator. The bar rises as production becomes cheaper. Pause on the final line and let them decide which door interests them.<br><br><span class=\"src\">[Sources] Three craft directions: Bharath Krishnamachari LinkedIn post, &ldquo;Future of analytics with AI.&rdquo; Analytics Intelligence Engineering terminology credited in the source post to Hamzah Chaudhary.</span>"
+  });
+
+  /* ───────────────────────── 7 · CLOSING ───────────────────────── */
+  S.push({
+    act: "Closing", wp: "Your early career",
+    title: "Focus your early career on learning", min: 1.5,
+    html:
+      '<div class="stack" style="gap:20px">' +
+        '<div class="lbl" style="color:var(--brick)">Your early career</div>' +
+        '<h2 style="font-size:52px;line-height:1.06">Focus your early career<br><span class="pine">on learning.</span></h2>' +
+        '<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:28px;margin-top:14px">' +
+          '<div style="border-top:4px solid var(--pine);padding-top:18px">' +
+            '<div class="lbl">01</div><div class="stmt" style="font-size:30px;margin-top:12px">Be a builder</div>' +
+            '<p style="font-size:18px;line-height:1.45;margin-top:10px">Turn what you know into something another person can use.</p>' +
+          '</div>' +
+          '<div style="border-top:4px solid var(--ochre);padding-top:18px">' +
+            '<div class="lbl">02</div><div class="stmt" style="font-size:30px;margin-top:12px">Be proactive</div>' +
+            '<p style="font-size:18px;line-height:1.45;margin-top:10px">Find useful problems. Put your hand up before every step is defined.</p>' +
+          '</div>' +
+          '<div style="border-top:4px solid var(--brick);padding-top:18px">' +
+            '<div class="lbl">03</div><div class="stmt" style="font-size:30px;margin-top:12px">Communicate well</div>' +
+            '<p style="font-size:18px;line-height:1.45;margin-top:10px">Explain the problem, the evidence and what should happen next.</p>' +
+          '</div>' +
+        '</div>' +
+        '<div style="border-top:1px solid var(--line);padding-top:19px;margin-top:8px" class="stmt">Early in your career, rate of learning matters more than appearing finished.</div>' +
+      '</div>',
+    notes: "Bring the role discussion back to choices students can make now. Building develops technical range. Initiative creates opportunities to learn. Communication becomes essential as analysts move toward data product management, storytelling and influence."
+  });
+
+  /* ───────────────────────── 8 · APPENDIX ───────────────────────── */
+  S.push({
+    act: "Appendix", wp: "Be a builder",
+    title: "Turn a resume line into visible work", min: 0,
+    html:
+      '<div class="stack" style="gap:16px">' +
+        '<div class="lbl">Be a builder</div>' +
+        '<h2 style="font-size:42px">Your resume already contains things you can build on.</h2>' +
+        '<div style="display:grid;grid-template-columns:1fr 1.5fr;column-gap:34px;border-top:3px solid var(--pine);padding-top:15px">' +
+          '<div><div class="lbl">Resume line</div><div class="stmt" style="font-size:23px;margin-top:8px">Built a forecasting model</div></div>' +
+          '<div><div class="lbl">Make it inspectable</div><p style="font-size:17px;margin-top:8px">Publish the code, assumptions, error analysis and where the model struggled.</p></div>' +
+        '</div>' +
+        '<div style="display:grid;grid-template-columns:1fr 1.5fr;column-gap:34px;border-top:1px solid var(--line);padding-top:15px">' +
+          '<div><div class="stmt" style="font-size:23px">Created a dashboard</div></div>' +
+          '<div><p style="font-size:17px;margin-top:2px">Explain the metric definitions, design choices and decision it supports.</p></div>' +
+        '</div>' +
+        '<div style="display:grid;grid-template-columns:1fr 1.5fr;column-gap:34px;border-top:1px solid var(--line);padding-top:15px">' +
+          '<div><div class="stmt" style="font-size:23px">Completed an analytics capstone</div></div>' +
+          '<div><p style="font-size:17px;margin-top:2px">Create a short case study with a working demo or walkthrough.</p></div>' +
+        '</div>' +
+        '<div style="display:grid;grid-template-columns:1fr 1.5fr;column-gap:34px;border-top:1px solid var(--line);padding-top:15px">' +
+          '<div><div class="stmt" style="font-size:23px">Automated a reporting process</div></div>' +
+          '<div><p style="font-size:17px;margin-top:2px">Show the previous workflow, your solution and what improved.</p></div>' +
+        '</div>' +
+        '<div style="background:var(--mint);padding:16px 22px;margin-top:3px" class="stmt">You do not always need another portfolio project. Make the work already on your resume visible.</div>' +
+      '</div>',
+    notes: "Optional appendix. Use it only if students ask what being a builder means in practice. Coursework, internships and capstones all count. The point is to expose the thinking behind the resume line, not to manufacture extra projects."
+  });
+
+  /* ───────────────────────── engine ───────────────────────── */
+  var stage = document.getElementById("stage");
+  var slideEl = document.getElementById("slide");
+  var eyebrowEl = document.getElementById("eyebrow");
+  var idxEl = document.getElementById("idx");
+  var dotsEl = document.getElementById("dots");
+  var notesEl = document.getElementById("notes");
+  var nhEl = document.getElementById("nh");
+  var nbEl = document.getElementById("nb");
+  var gridEl = document.getElementById("grid");
+  var gridWrap = document.getElementById("gridwrap");
+  var clockEl = document.getElementById("clock");
+
+  var i = 0, step = 0, maxStep = 0;
+
+  function fit() {
+    stage.style.transform = "scale(" + Math.min(window.innerWidth / 1280, window.innerHeight / 720) + ")";
+  }
+
+  function paintSteps() {
+    var els = slideEl.querySelectorAll("[data-step]");
+    for (var k = 0; k < els.length; k++) {
+      var s = parseInt(els[k].getAttribute("data-step"), 10);
+      if (s <= step) els[k].classList.add("shown");
+      else els[k].classList.remove("shown");
+    }
+    dotsEl.innerHTML = "";
+    if (maxStep > 0) {
+      for (var d = 1; d <= maxStep; d++) {
+        var b = document.createElement("i");
+        if (d <= step) b.className = "on";
+        dotsEl.appendChild(b);
+      }
+    }
+  }
+
+  function render(startAtEnd) {
+    var d = S[i];
+    slideEl.innerHTML = d.html;
+    var els = slideEl.querySelectorAll("[data-step]");
+    maxStep = 0;
+    for (var k = 0; k < els.length; k++) {
+      maxStep = Math.max(maxStep, parseInt(els[k].getAttribute("data-step"), 10));
+    }
+    step = startAtEnd ? maxStep : 0;
+    eyebrowEl.innerHTML = "<b>" + d.act + "</b> &nbsp;·&nbsp; " + d.wp;
+    idxEl.innerHTML = (i + 1) + " <i>/</i> " + S.length;
+    nhEl.innerHTML = "Speaker notes &nbsp;·&nbsp; " + d.title + " &nbsp;·&nbsp; approx " + d.min + " min";
+    nbEl.innerHTML = d.notes || "";
+    var cur = gridWrap.querySelector(".thumb.cur");
+    if (cur) cur.classList.remove("cur");
+    var t = gridWrap.children[i];
+    if (t) t.classList.add("cur");
+    paintSteps();
+  }
+
+  function next() {
+    if (step < maxStep) { step++; paintSteps(); }
+    else if (i < S.length - 1) { i++; render(false); }
+  }
+  function prev() {
+    if (step > 0) { step--; paintSteps(); }
+    else if (i > 0) { i--; render(true); }
+  }
+  function goSlide(n) { i = Math.max(0, Math.min(S.length - 1, n)); render(false); }
+
+  function budget() {
+    var t = 0;
+    S.forEach(function (d) { t += d.min; });
+    document.getElementById("gh").innerHTML =
+      "Deck map — click to jump · Esc to close &nbsp;&nbsp;|&nbsp;&nbsp; <b style=\"color:var(--pine)\">" +
+      t + " min</b> planned for the main session";
+  }
+
+  function buildGrid() {
+    var frag = document.createDocumentFragment();
+    S.forEach(function (d, n) {
+      var b = document.createElement("button");
+      b.className = "thumb";
+      b.type = "button";
+      b.innerHTML = '<div class="tn">' + String(n + 1).padStart(2, "0") + " · " + d.act +
+        '</div><div class="tt">' + d.title + '</div><div class="tm">~' + d.min + " MIN</div>";
+      b.addEventListener("click", function () { goSlide(n); gridEl.classList.remove("on"); });
+      frag.appendChild(b);
+    });
+    gridWrap.appendChild(frag);
+  }
+
+  var t0 = null, elapsed = 0, tick = null;
+  function paintClock() {
+    var s = Math.floor((elapsed + (t0 ? Date.now() - t0 : 0)) / 1000);
+    clockEl.textContent = String(Math.floor(s / 60)).padStart(2, "0") + ":" + String(s % 60).padStart(2, "0");
+  }
+  function toggleTimer() {
+    if (t0) { elapsed += Date.now() - t0; t0 = null; clearInterval(tick); tick = null; clockEl.classList.remove("run"); }
+    else { t0 = Date.now(); tick = setInterval(paintClock, 500); clockEl.classList.add("run"); }
+    paintClock();
+  }
+  function fullscreen() {
+    if (document.fullscreenElement) document.exitFullscreen();
+    else if (document.documentElement.requestFullscreen) document.documentElement.requestFullscreen();
+  }
+
+  document.getElementById("btimer").addEventListener("click", toggleTimer);
+  document.getElementById("bnotes").addEventListener("click", function () { notesEl.classList.toggle("on"); });
+  document.getElementById("bgrid").addEventListener("click", function () { gridEl.classList.toggle("on"); });
+
+  document.addEventListener("keydown", function (e) {
+    var k = e.key;
+    if (k === "ArrowRight" || k === "PageDown" || k === " " || k === "Enter") { next(); e.preventDefault(); }
+    else if (k === "ArrowLeft" || k === "PageUp") { prev(); e.preventDefault(); }
+    else if (k === "ArrowDown") { if (i < S.length - 1) { i++; render(false); } e.preventDefault(); }
+    else if (k === "ArrowUp") { if (i > 0) { i--; render(false); } e.preventDefault(); }
+    else if (k === "Home") { goSlide(0); }
+    else if (k === "End") { goSlide(S.length - 1); }
+    else if (k === "Escape") { gridEl.classList.remove("on"); }
+    else if (k === "o" || k === "O") { gridEl.classList.toggle("on"); }
+    else if (k === "n" || k === "N") { notesEl.classList.toggle("on"); }
+    else if (k === "t" || k === "T") { toggleTimer(); }
+    else if (k === "f" || k === "F") { fullscreen(); }
+  });
+
+  stage.addEventListener("click", function (e) {
+    if (e.clientX < window.innerWidth * 0.25) prev(); else next();
+  });
+
+  window.addEventListener("resize", fit);
+  buildGrid();
+  budget();
+  fit();
+  render(false);
+  paintClock();
+})();
+</script>
