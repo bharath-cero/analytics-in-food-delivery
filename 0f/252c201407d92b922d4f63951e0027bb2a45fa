@@ -1,0 +1,32 @@
+build.py
+  s_d6f5d080493362::t_0e5305a7e5d1ce 15,18
+  s_d6f5d080493362::t_f8cd54095832b2 4,16-17,19-20
+src/deck.html
+  s_d6f5d080493362::t_f8cd54095832b2 236,239,242
+  s_d6f5d080493362::t_0e5305a7e5d1ce 245
+README.md
+  s_d6f5d080493362::t_0e5305a7e5d1ce 31-32
+  s_d6f5d080493362::t_f8cd54095832b2 30
+assets/ntu-logo.svg
+  s_d6f5d080493362::t_c208be67f435de 1-973
+dist/analytics-in-food-delivery.html
+  s_d6f5d080493362::t_98ca2bbaf06fa7 242,245,248,251
+index.html
+  s_d6f5d080493362::t_8ebfdacbdc383d 242,245,248,251
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.15",
+  "base_commit_sha": "0f252c201407d92b922d4f63951e0027bb2a45fa",
+  "prompts": {},
+  "sessions": {
+    "s_d6f5d080493362": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a05d9d-f89e-73b0-a4b3-76f4398565d5",
+        "model": "gpt-5.6-sol"
+      },
+      "human_author": "Bharath Krishnamachari <222831533+bharath-cero@users.noreply.github.com>"
+    }
+  }
+}
